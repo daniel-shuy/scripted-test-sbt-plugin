@@ -39,36 +39,37 @@ object SbtScriptedScalaTest extends AutoPlugin {
   }
   import autoImport._
 
-  private[this] lazy val logger = Def.task[Logger] {
-    streams.value.log
-  }
-
   override def projectSettings: Seq[Setting[_]] = Seq(
     scriptedScalaTestDurations := true,
     scriptedScalaTestStacks := NoStacks,
     scriptedScalaTestStats := true,
     scriptedScalaTestSpec := None,
     scriptedScalaTest := {
+      val duration = scriptedScalaTestDurations.value
+      val stacks = scriptedScalaTestStacks.value
+      val stats = scriptedScalaTestStats.value
+      val log = streams.value.log
       // do nothing if not configured
       scriptedScalaTestSpec.value match {
-        case Some(suite) => executeScriptedTestsTask(suite)
+        case Some(suite) =>
+          executeScriptedTestsTask(suite, duration, stacks, stats)
         case None =>
-          logger.value.warn(
-            s"${scriptedScalaTestSpec.key.label} not configured, no tests will be run..."
-          )
+          log.warn(s"${scriptedScalaTestSpec.key.label} not configured, no tests will be run...")
       }
     }
   )
 
   private[this] def executeScriptedTestsTask(
-      suite: ScriptedScalaTestSuite
-  ): Unit = Def.task {
-    val stacks = scriptedScalaTestStacks.value
+    suite: ScriptedScalaTestSuite,
+    showDuration: Boolean,
+    stacks: ScriptedTestStacks,
+    stats: Boolean,
+  ): Unit = {
     val status = suite.executeScripted(
-      durations = scriptedScalaTestDurations.value,
+      durations = showDuration,
       shortstacks = stacks.shortstacks,
       fullstacks = stacks.fullstacks,
-      stats = scriptedScalaTestStats.value
+      stats = stats
     )
     status.waitUntilCompleted()
     if (!status.succeeds()) {
