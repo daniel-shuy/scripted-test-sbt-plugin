@@ -18,7 +18,6 @@ releaseProcess := Seq[ReleaseStep](
   // don't tag, leave it to git flow
   // tagRelease,
   releaseStepCommandAndRemaining("^ publish"),
-  releaseStepTask(bintrayRelease),
   setNextVersion,
   commitNextVersion,
   pushChanges
