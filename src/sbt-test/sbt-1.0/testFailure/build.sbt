@@ -1,3 +1,5 @@
+import scala.sys.process._
+
 import com.github.daniel.shuy.sbt.scripted.scalatest.ScriptedScalaTestSuiteMixin
 import org.scalatest.Assertions._
 import org.scalatest.wordspec.AnyWordSpec
@@ -23,6 +25,9 @@ lazy val testFailure = project
 
       "scripted" should {
         "fail on ScalaTest failure" in {
+          val pidFile = new File("target/pid")
+          (s"echo ${ProcessHandle.current.pid}" #> pidFile).!!
+
           assertThrows[sbt.Incomplete](
             Project.extract(sbtState)
               .runInputTask(scripted, "", sbtState))
